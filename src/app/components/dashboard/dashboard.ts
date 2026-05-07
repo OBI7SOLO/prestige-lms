@@ -1,9 +1,12 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { RouterModule, Router } from '@angular/router';
+import { inject } from '@angular/core';
 
 @Component({
   selector: 'app-dashboard',
-  imports: [CommonModule],
+  standalone: true,
+  imports: [CommonModule, RouterModule],
   template: `
     <div class="flex h-screen bg-gray-100 font-sans">
       <!-- Sidebar -->
@@ -11,13 +14,16 @@ import { CommonModule } from '@angular/common';
         <div class="p-6 text-2xl font-bold tracking-wider border-b border-slate-800">Prestige</div>
         <nav class="flex-1 px-4 py-6 space-y-2">
           <a
-            href="#"
-            class="block px-4 py-2.5 rounded transition bg-slate-800 text-white font-medium"
+            routerLink="/dashboard"
+            routerLinkActive="bg-slate-800 text-white"
+            [routerLinkActiveOptions]="{ exact: true }"
+            class="block px-4 py-2.5 rounded transition text-slate-300 hover:bg-slate-800 hover:text-white font-medium"
             >Home</a
           >
           <a
-            href="#"
-            class="block px-4 py-2.5 rounded transition hover:bg-slate-800 text-slate-300 hover:text-white"
+            routerLink="/dashboard/attendance"
+            routerLinkActive="bg-slate-800 text-white"
+            class="block px-4 py-2.5 rounded transition text-slate-300 hover:bg-slate-800 hover:text-white"
             >Attendance</a
           >
           <a
@@ -60,11 +66,30 @@ import { CommonModule } from '@angular/common';
         <!-- Main Content -->
         <main class="flex-1 p-6 md:p-8 overflow-y-auto">
           <div class="max-w-6xl mx-auto">
-            <h1 class="text-2xl md:text-3xl font-semibold text-gray-800 mb-6 md:mb-8">
-              Dashboard Overview
-            </h1>
+            <div class="flex justify-between items-center mb-6 md:mb-8">
+              <h1 class="text-2xl md:text-3xl font-semibold text-gray-800">Dashboard</h1>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              <!-- Quick Actions -->
+              <div class="flex space-x-3">
+                <button
+                  routerLink="/dashboard/attendance"
+                  class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium shadow-sm transition"
+                >
+                  Mark Attendance
+                </button>
+                <button
+                  class="bg-slate-200 hover:bg-slate-300 text-slate-800 px-4 py-2 rounded-md text-sm font-medium shadow-sm transition"
+                >
+                  Add Student
+                </button>
+              </div>
+            </div>
+
+            <!-- Only show default home cards when exactly at /dashboard -->
+            <div
+              *ngIf="isHomeRoute()"
+              class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8"
+            >
               <!-- Summary Card 1 -->
               <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col">
                 <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wide mb-2">
@@ -89,6 +114,9 @@ import { CommonModule } from '@angular/common';
                 <p class="text-3xl font-bold text-slate-800 mt-auto">$120.00</p>
               </div>
             </div>
+
+            <!-- Nested Routes Mount Point -->
+            <router-outlet></router-outlet>
           </div>
         </main>
       </div>
@@ -96,4 +124,10 @@ import { CommonModule } from '@angular/common';
   `,
   styles: ``,
 })
-export class Dashboard {}
+export class Dashboard {
+  private router = inject(Router);
+
+  isHomeRoute(): boolean {
+    return this.router.url === '/dashboard';
+  }
+}
