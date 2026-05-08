@@ -5,6 +5,7 @@ import { authGuard } from './guards/auth.guard';
 import { Attendance } from './components/attendance/attendance';
 import { TasksComponent } from './components/tasks/tasks';
 import { PaymentsComponent } from './components/payments/payments';
+import { NotFoundComponent } from './components/not-found/not-found';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
@@ -19,4 +20,5 @@ export const routes: Routes = [
       { path: 'payments', component: PaymentsComponent },
     ],
   },
+  { path: '**', component: NotFoundComponent },
 ];

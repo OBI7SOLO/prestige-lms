@@ -170,7 +170,16 @@ import { Observable, filter, switchMap } from 'rxjs';
                     </div>
                   </div>
                   <ng-template #noPerf>
-                    <p class="text-gray-500 text-sm py-2">Loading performance data...</p>
+                    <div class="animate-pulse space-y-4 py-2 mt-2">
+                      <div class="h-4 bg-slate-200 rounded w-1/3 mb-1"></div>
+                      <div class="w-full bg-slate-100 rounded-full h-2.5"></div>
+
+                      <div class="h-4 bg-slate-200 rounded w-1/4 mb-1"></div>
+                      <div class="w-full bg-slate-100 rounded-full h-2.5"></div>
+
+                      <div class="h-4 bg-slate-200 rounded w-2/5 mb-1"></div>
+                      <div class="w-full bg-slate-100 rounded-full h-2.5"></div>
+                    </div>
                   </ng-template>
                 </div>
 
@@ -207,7 +216,11 @@ import { Observable, filter, switchMap } from 'rxjs';
                     </div>
                   </div>
                   <ng-template #noTasks>
-                    <p class="text-gray-500 text-sm py-2">Loading tasks...</p>
+                    <div class="animate-pulse space-y-3 py-2">
+                      <div class="h-12 bg-slate-100 rounded-lg w-full mb-2"></div>
+                      <div class="h-12 bg-slate-100 rounded-lg w-full mb-2"></div>
+                      <div class="h-12 bg-slate-100 rounded-lg w-full"></div>
+                    </div>
                   </ng-template>
                   <a
                     routerLink="/dashboard/tasks"
