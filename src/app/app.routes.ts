@@ -4,6 +4,7 @@ import { Login } from './components/login/login';
 import { authGuard } from './guards/auth.guard';
 import { Attendance } from './components/attendance/attendance';
 import { TasksComponent } from './components/tasks/tasks';
+import { PaymentsComponent } from './components/payments/payments';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
@@ -15,6 +16,7 @@ export const routes: Routes = [
     children: [
       { path: 'attendance', component: Attendance },
       { path: 'tasks', component: TasksComponent },
+      { path: 'payments', component: PaymentsComponent },
     ],
   },
 ];

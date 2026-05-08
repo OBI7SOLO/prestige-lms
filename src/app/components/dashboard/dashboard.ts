@@ -4,6 +4,7 @@ import { RouterModule, Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { TaskService, Task } from '../../services/task.service';
 import { AcademicService, SkillPerformance } from '../../services/academic.service';
+import { PaymentService } from '../../services/payment.service';
 import { Observable, filter, switchMap } from 'rxjs';
 
 @Component({
@@ -39,6 +40,12 @@ import { Observable, filter, switchMap } from 'rxjs';
             routerLinkActive="bg-slate-800 text-white"
             class="block px-4 py-2.5 rounded transition hover:bg-slate-800 text-slate-300 hover:text-white"
             >Tasks</a
+          >
+          <a
+            routerLink="/dashboard/payments"
+            routerLinkActive="bg-slate-800 text-white"
+            class="block px-4 py-2.5 rounded transition hover:bg-slate-800 text-slate-300 hover:text-white"
+            >Finances</a
           >
         </nav>
       </aside>
@@ -88,22 +95,57 @@ import { Observable, filter, switchMap } from 'rxjs';
               <!-- Quick Actions -->
               <div class="flex space-x-3">
                 <button
+                  routerLink="/dashboard/payments"
+                  class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md text-sm font-medium shadow-sm transition"
+                >
+                  Make Payment
+                </button>
+                <button
                   routerLink="/dashboard/attendance"
                   class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium shadow-sm transition"
                 >
                   Mark Attendance
-                </button>
-                <button
-                  routerLink="/dashboard/tasks"
-                  class="bg-slate-200 hover:bg-slate-300 text-slate-800 px-4 py-2 rounded-md text-sm font-medium shadow-sm transition"
-                >
-                  Manage Tasks
                 </button>
               </div>
             </div>
 
             <!-- Only show default home cards when exactly at /dashboard -->
             <div *ngIf="isHomeRoute()">
+              <!-- Admin Global Financial Widget -->
+              <div *ngIf="(user$ | async)?.role === 'admin'" class="mb-8">
+                <div class="bg-indigo-900 rounded-xl shadow-md overflow-hidden text-white p-6">
+                  <h2 class="text-xl font-bold mb-4 flex items-center">
+                    <svg
+                      class="w-6 h-6 mr-2 opacity-80"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                      ></path>
+                    </svg>
+                    Executive Summary
+                  </h2>
+                  <div
+                    class="grid grid-cols-1 md:grid-cols-2 gap-6"
+                    *ngIf="adminStats$ | async as stats"
+                  >
+                    <div class="bg-indigo-800/50 p-4 rounded-lg border border-indigo-700/50">
+                      <p class="text-indigo-200 text-sm font-medium mb-1">Total Revenue</p>
+                      <p class="text-3xl font-bold">{{ stats.totalRevenue | currency }}</p>
+                    </div>
+                    <div class="bg-indigo-800/50 p-4 rounded-lg border border-indigo-700/50">
+                      <p class="text-indigo-200 text-sm font-medium mb-1">Pending Payments</p>
+                      <p class="text-3xl font-bold">{{ stats.pendingPayments }} Students</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
               <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
                 <!-- Performance Overview -->
                 <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col">
@@ -190,10 +232,12 @@ export class Dashboard implements OnInit {
   private authService = inject(AuthService);
   private taskService = inject(TaskService);
   private academicService = inject(AcademicService);
+  private paymentService = inject(PaymentService);
 
   user$ = this.authService.user$;
   tasks$: Observable<Task[]> | undefined;
   performance$: Observable<SkillPerformance[]> | undefined;
+  adminStats$: Observable<{ totalRevenue: number; pendingPayments: number }> | undefined;
 
   ngOnInit() {
     this.tasks$ = this.taskService.getTasks();
@@ -202,6 +246,8 @@ export class Dashboard implements OnInit {
       filter((user) => !!user),
       switchMap((user) => this.academicService.getStudentPerformance(user!.uid)),
     );
+
+    this.adminStats$ = this.paymentService.getAdminGlobalStats();
   }
 
   isHomeRoute(): boolean {
