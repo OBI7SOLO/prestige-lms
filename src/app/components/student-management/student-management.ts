@@ -114,8 +114,15 @@ const SHIFTS = ['Morning', 'Afternoon', 'Evening'] as const;
             ></textarea>
           </div>
           <div *ngIf="!editingId" class="flex items-center space-x-2">
-            <input type="checkbox" id="createAccount" [(ngModel)]="createAccount" name="createAccount" />
-            <label for="createAccount" class="text-sm text-slate-700">Create platform account for this student</label>
+            <input
+              type="checkbox"
+              id="createAccount"
+              [(ngModel)]="createAccount"
+              name="createAccount"
+            />
+            <label for="createAccount" class="text-sm text-slate-700"
+              >Create platform account for this student</label
+            >
           </div>
           <div class="flex space-x-3">
             <button
@@ -271,7 +278,12 @@ export class StudentManagementComponent implements OnInit {
             englishLevel: this.formData.englishLevel,
             shift: this.formData.shift,
           };
-          const uid = await this.authService.register(this.formData.email!, password, 'student', profile);
+          const uid = await this.authService.register(
+            this.formData.email!,
+            password,
+            'student',
+            profile,
+          );
           // Create students/{uid}
           await this.studentService.addStudentWithUid(uid, { ...this.formData, id: uid });
           alert(`Student and account created. Password: ${password}`);

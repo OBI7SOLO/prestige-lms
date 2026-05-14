@@ -33,7 +33,8 @@ import { EmptyStateComponent } from '../empty-state/empty-state';
           <path
             class="opacity-75"
             fill="currentColor"
-            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+          ></path>
         </svg>
       </div>
 
@@ -93,7 +94,9 @@ import { EmptyStateComponent } from '../empty-state/empty-state';
               >
                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                   {{ record.value.studentName }}
-                  <div class="sm:hidden text-xs text-gray-500 mt-1">{{ record.value.englishLevel }}</div>
+                  <div class="sm:hidden text-xs text-gray-500 mt-1">
+                    {{ record.value.englishLevel }}
+                  </div>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 hidden sm:table-cell">
                   {{ record.value.englishLevel }}
