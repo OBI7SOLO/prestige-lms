@@ -5,18 +5,19 @@ import { StudentService, Student } from '../../services/student.service';
 import { AuthService } from '../../services/auth.service';
 import { Auth } from '@angular/fire/auth';
 import { Firestore, collection, addDoc } from '@angular/fire/firestore';
+import { EmptyStateComponent } from '../empty-state/empty-state';
 
 @Component({
   selector: 'app-attendance',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, EmptyStateComponent],
   template: `
     <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-      <h2 class="text-2xl font-semibold text-gray-800 mb-6">Mark Attendance</h2>
+      <h2 class="text-2xl font-semibold text-[#0a3161] mb-6">Mark Attendance</h2>
 
       <div *ngIf="isLoading" class="flex justify-center items-center py-12">
         <svg
-          class="animate-spin h-8 w-8 text-blue-600"
+          class="animate-spin h-8 w-8 text-[#b31942]"
           xmlns="http://www.w3.org/2000/svg"
           fill="none"
           viewBox="0 0 24 24"
@@ -37,8 +38,12 @@ import { Firestore, collection, addDoc } from '@angular/fire/firestore';
         </svg>
       </div>
 
-      <div *ngIf="!isLoading && students.length === 0" class="text-center py-8 text-gray-500">
-        <p>No students found.</p>
+      <div *ngIf="!isLoading && students.length === 0" class="py-4">
+        <app-empty-state
+          title="No Students Registered"
+          message="You need to register students in the database before taking attendance."
+        >
+        </app-empty-state>
       </div>
 
       <form
