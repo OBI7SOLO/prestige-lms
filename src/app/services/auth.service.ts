@@ -29,6 +29,7 @@ export interface UserProfile {
 export class AuthService {
   private auth = inject(Auth);
   private firestore = inject(Firestore);
+  private readonly roleCacheKey = 'prestige-role-cache';
 
   // Observable for the current authenticated Firebase user
   currentUser$: Observable<User | null> = authState(this.auth);
@@ -44,21 +45,23 @@ export class AuthService {
       return docData(userDocRef, { idField: 'uid' }).pipe(
         map((profile) => {
           if (profile) {
-            return profile as UserProfile;
+            const userProfile = profile as UserProfile;
+            this.setCachedRole(userProfile.uid, userProfile.role);
+            return userProfile;
           }
 
           // Fallback profile avoids blocking UI if Firestore profile is missing.
           return {
             uid: user.uid,
             email: user.email,
-            role: 'student' as const,
+            role: this.getCachedRole(user.uid),
           };
         }),
         catchError(() =>
           of({
             uid: user.uid,
             email: user.email,
-            role: 'student' as const,
+            role: this.getCachedRole(user.uid),
           }),
         ),
       );
@@ -83,6 +86,31 @@ export class AuthService {
       role,
       createdAt: serverTimestamp(),
     });
+
+    this.setCachedRole(credential.user.uid, role);
+  }
+
+  private getCachedRole(uid: string): UserProfile['role'] {
+    try {
+      const cacheRaw = localStorage.getItem(this.roleCacheKey);
+      if (!cacheRaw) return 'student';
+
+      const cache = JSON.parse(cacheRaw) as Record<string, UserProfile['role']>;
+      return cache[uid] || 'student';
+    } catch {
+      return 'student';
+    }
+  }
+
+  private setCachedRole(uid: string, role: UserProfile['role']) {
+    try {
+      const cacheRaw = localStorage.getItem(this.roleCacheKey);
+      const cache = cacheRaw ? (JSON.parse(cacheRaw) as Record<string, UserProfile['role']>) : {};
+      cache[uid] = role;
+      localStorage.setItem(this.roleCacheKey, JSON.stringify(cache));
+    } catch {
+      // Ignore cache write errors and keep auth flow working.
+    }
   }
 
   async logout(): Promise<void> {
