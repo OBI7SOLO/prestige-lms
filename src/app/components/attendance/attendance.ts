@@ -33,8 +33,7 @@ import { EmptyStateComponent } from '../empty-state/empty-state';
           <path
             class="opacity-75"
             fill="currentColor"
-            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-          ></path>
+            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
         </svg>
       </div>
 
@@ -76,7 +75,7 @@ import { EmptyStateComponent } from '../empty-state/empty-state';
                   scope="col"
                   class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden sm:table-cell"
                 >
-                  Group
+                  Level
                 </th>
                 <th
                   scope="col"
@@ -94,10 +93,10 @@ import { EmptyStateComponent } from '../empty-state/empty-state';
               >
                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                   {{ record.value.studentName }}
-                  <div class="sm:hidden text-xs text-gray-500 mt-1">{{ record.value.group }}</div>
+                  <div class="sm:hidden text-xs text-gray-500 mt-1">{{ record.value.englishLevel }}</div>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 hidden sm:table-cell">
-                  {{ record.value.group }}
+                  {{ record.value.englishLevel }}
                 </td>
                 <td
                   class="px-6 py-4 whitespace-nowrap text-sm flex justify-center space-x-2 md:space-x-4"
@@ -198,7 +197,7 @@ export class Attendance implements OnInit {
             this.fb.group({
               studentId: [student.id],
               studentName: [`${student.firstName} ${student.lastName}`],
-              group: [student.group],
+              englishLevel: [student.englishLevel],
               status: ['Present', Validators.required],
             }),
           );

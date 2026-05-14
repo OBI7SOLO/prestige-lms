@@ -3,12 +3,12 @@ import {
   Firestore,
   collection,
   addDoc,
-  query,
-  where,
   collectionData,
   updateDoc,
   doc,
   deleteDoc,
+  query,
+  where,
 } from '@angular/fire/firestore';
 import { Observable } from 'rxjs';
 
@@ -46,7 +46,20 @@ export class TaskService {
 
   getTasks(): Observable<Task[]> {
     const tasksRef = collection(this.firestore, 'tasks');
-    return collectionData(tasksRef, { idField: 'id' }) as Observable<Task[]>;
+    const tasksQuery = query(tasksRef);
+    return collectionData(tasksQuery, { idField: 'id' }) as Observable<Task[]>;
+  }
+
+  getTasksByGroup(groupId: string): Observable<Task[]> {
+    const tasksRef = collection(this.firestore, 'tasks');
+    const q = query(tasksRef, where('groupId', '==', groupId));
+    return collectionData(q, { idField: 'id' }) as Observable<Task[]>;
+  }
+
+  getTasksByTeacher(teacherId: string): Observable<Task[]> {
+    const tasksRef = collection(this.firestore, 'tasks');
+    const q = query(tasksRef, where('teacherId', '==', teacherId));
+    return collectionData(q, { idField: 'id' }) as Observable<Task[]>;
   }
 
   submitTask(submission: Partial<TaskSubmission>): Promise<any> {

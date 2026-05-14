@@ -30,7 +30,8 @@ export class AttendanceService {
   // Get all attendance records
   getAttendance(): Observable<Attendance[]> {
     const attendanceCollection = collection(this.firestore, 'attendance');
-    return collectionData(attendanceCollection, { idField: 'id' }) as Observable<Attendance[]>;
+    const attendanceQuery = query(attendanceCollection);
+    return collectionData(attendanceQuery, { idField: 'id' }) as Observable<Attendance[]>;
   }
 
   // Get attendance for specific student

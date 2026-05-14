@@ -5,7 +5,6 @@ import {
   addDoc,
   query,
   where,
-  getDocs,
   updateDoc,
   doc,
   deleteDoc,
@@ -14,6 +13,13 @@ import {
 import { Observable, from, map } from 'rxjs';
 
 export type AcademicSkill = 'Speaking' | 'Listening' | 'Writing' | 'Grammar' | 'Reading';
+export const ACADEMIC_SKILLS: AcademicSkill[] = [
+  'Speaking',
+  'Listening',
+  'Writing',
+  'Grammar',
+  'Reading',
+];
 
 export interface SkillGrade {
   id?: string;
@@ -57,21 +63,19 @@ export class AcademicService {
     const gradesRef = collection(this.firestore, 'grades');
     const q = query(gradesRef, where('studentId', '==', studentId));
 
-    return from(getDocs(q)).pipe(
-      map((snapshot) => {
-        const grades = snapshot.docs.map((doc) => doc.data() as SkillGrade);
+    return collectionData(q, { idField: 'id' }).pipe(
+      map((grades = []) => {
         const performanceMap = new Map<AcademicSkill, { total: number; count: number }>();
 
-        grades.forEach((g) => {
-          const current = performanceMap.get(g.skill) || { total: 0, count: 0 };
-          performanceMap.set(g.skill, {
-            total: current.total + g.grade,
+        (grades as SkillGrade[]).forEach((grade) => {
+          const current = performanceMap.get(grade.skill) || { total: 0, count: 0 };
+          performanceMap.set(grade.skill, {
+            total: current.total + grade.grade,
             count: current.count + 1,
           });
         });
 
-        const skills: AcademicSkill[] = ['Speaking', 'Listening', 'Writing', 'Grammar', 'Reading'];
-        return skills.map((skill) => {
+        return ACADEMIC_SKILLS.map((skill) => {
           const data = performanceMap.get(skill);
           return {
             skill,
@@ -83,10 +87,17 @@ export class AcademicService {
     );
   }
 
+  getStudentGrades(studentId: string): Observable<SkillGrade[]> {
+    const gradesRef = collection(this.firestore, 'grades');
+    const q = query(gradesRef, where('studentId', '==', studentId));
+    return collectionData(q, { idField: 'id' }) as Observable<SkillGrade[]>;
+  }
+
   // Get all grades
   getAllGrades(): Observable<SkillGrade[]> {
     const gradesRef = collection(this.firestore, 'grades');
-    return collectionData(gradesRef, { idField: 'id' }) as Observable<SkillGrade[]>;
+    const q = query(gradesRef);
+    return collectionData(q, { idField: 'id' }) as Observable<SkillGrade[]>;
   }
 
   // Update grade

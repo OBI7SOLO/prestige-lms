@@ -5,12 +5,12 @@ import {
   addDoc,
   query,
   where,
-  getDocs,
   doc,
   updateDoc,
   increment,
+  collectionData,
 } from '@angular/fire/firestore';
-import { Observable, from, map } from 'rxjs';
+import { Observable, map } from 'rxjs';
 
 export interface PaymentPlan {
   id?: string;
@@ -83,12 +83,10 @@ export class PaymentService {
   getFinancialStatus(studentId: string): Observable<FinancialStatus | null> {
     const plansRef = collection(this.firestore, 'paymentPlans');
     const q = query(plansRef, where('studentId', '==', studentId));
-
-    return from(getDocs(q)).pipe(
-      map((snapshot) => {
-        if (snapshot.empty) return null;
-        // Assuming one active plan for MVP
-        const plan = snapshot.docs[0].data() as PaymentPlan;
+    return collectionData(q, { idField: 'id' }).pipe(
+      map((plans = []) => {
+        if (!plans || plans.length === 0) return null;
+        const plan = plans[0] as PaymentPlan;
         const remainingBalance = plan.totalAmount - plan.paidAmount;
         const progressPercentage =
           plan.totalAmount > 0 ? (plan.paidAmount / plan.totalAmount) * 100 : 0;
@@ -107,17 +105,15 @@ export class PaymentService {
   getAdminGlobalStats(): Observable<{ totalRevenue: number; pendingPayments: number }> {
     const plansRef = collection(this.firestore, 'paymentPlans');
     const q = query(plansRef);
-    return from(getDocs(q)).pipe(
-      map((snapshot) => {
+    return collectionData(q, { idField: 'id' }).pipe(
+      map((plans = []) => {
         let totalRevenue = 0;
         let pendingPayments = 0;
 
-        snapshot.docs.forEach((docSnap) => {
-          const plan = docSnap.data() as PaymentPlan;
+        plans.forEach((p: any) => {
+          const plan = p as PaymentPlan;
           totalRevenue += plan.paidAmount;
-          if (plan.totalAmount > plan.paidAmount) {
-            pendingPayments++;
-          }
+          if (plan.totalAmount > plan.paidAmount) pendingPayments++;
         });
 
         return { totalRevenue, pendingPayments };

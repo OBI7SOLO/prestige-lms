@@ -30,43 +30,48 @@ export class AuthService {
   private auth = inject(Auth);
   private firestore = inject(Firestore);
   private readonly roleCacheKey = 'prestige-role-cache';
+  private cachedUser$?: Observable<UserProfile | null>;
 
   // Observable for the current authenticated Firebase user
   currentUser$: Observable<User | null> = authState(this.auth);
 
-  // Observable for the user's custom profile from Firestore
-  user$: Observable<UserProfile | null> = this.currentUser$.pipe(
-    switchMap((user) => {
-      if (!user) {
-        return of(null);
-      }
-
-      const userDocRef = doc(this.firestore, `users/${user.uid}`);
-      return docData(userDocRef, { idField: 'uid' }).pipe(
-        map((profile) => {
-          if (profile) {
-            const userProfile = profile as UserProfile;
-            this.setCachedRole(userProfile.uid, userProfile.role);
-            return userProfile;
+  // Observable for the user's custom profile from Firestore (lazy getter)
+  get user$(): Observable<UserProfile | null> {
+    if (!this.cachedUser$) {
+      this.cachedUser$ = this.currentUser$.pipe(
+        switchMap((user) => {
+          if (!user) {
+            return of(null);
           }
 
-          // Fallback profile avoids blocking UI if Firestore profile is missing.
-          return {
-            uid: user.uid,
-            email: user.email,
-            role: this.getCachedRole(user.uid),
-          };
+          const userDocRef = doc(this.firestore, `users/${user.uid}`);
+          return docData(userDocRef, { idField: 'uid' }).pipe(
+            map((profile) => {
+              if (profile) {
+                const userProfile = profile as UserProfile;
+                this.setCachedRole(userProfile.uid, userProfile.role);
+                return userProfile;
+              }
+
+              return {
+                uid: user.uid,
+                email: user.email,
+                role: this.getCachedRole(user.uid),
+              };
+            }),
+            catchError(() =>
+              of({
+                uid: user.uid,
+                email: user.email,
+                role: this.getCachedRole(user.uid),
+              }),
+            ),
+          );
         }),
-        catchError(() =>
-          of({
-            uid: user.uid,
-            email: user.email,
-            role: this.getCachedRole(user.uid),
-          }),
-        ),
       );
-    }),
-  );
+    }
+    return this.cachedUser$;
+  }
 
   async login(email: string, password: string): Promise<void> {
     await signInWithEmailAndPassword(this.auth, email, password);
@@ -76,7 +81,8 @@ export class AuthService {
     email: string,
     password: string,
     role: UserProfile['role'] = 'student',
-  ): Promise<void> {
+    profileData?: Record<string, any>,
+  ): Promise<string> {
     const credential = await createUserWithEmailAndPassword(this.auth, email, password);
     const profileRef = firestoreDoc(this.firestore, `users/${credential.user.uid}`);
 
@@ -85,9 +91,11 @@ export class AuthService {
       email: credential.user.email,
       role,
       createdAt: serverTimestamp(),
+      ...(profileData || {}),
     });
 
     this.setCachedRole(credential.user.uid, role);
+    return credential.user.uid;
   }
 
   private getCachedRole(uid: string): UserProfile['role'] {

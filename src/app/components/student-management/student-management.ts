@@ -3,9 +3,10 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { StudentService, Student } from '../../services/student.service';
 import { Observable } from 'rxjs';
+import { AuthService } from '../../services/auth.service';
 
 const SALONS = ['Salon A', 'Salon B', 'Salon C', 'Salon D'] as const;
-const ENGLISH_LEVELS = ['Starter', 'A1', 'A2', 'B1', 'B2', 'C1'] as const;
+const ENGLISH_LEVELS = ['A1', 'A2', 'B1', 'B2', 'C1'] as const;
 const SHIFTS = ['Morning', 'Afternoon', 'Evening'] as const;
 
 @Component({
@@ -68,28 +69,9 @@ const SHIFTS = ['Morning', 'Afternoon', 'Evening'] as const;
                 class="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#b31942]"
                 required
               />
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-slate-700">Group</label>
-              <input
-                [(ngModel)]="formData.group"
-                name="group"
-                type="text"
-                class="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#b31942]"
-                required
-              />
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-slate-700">Salon</label>
-              <select
-                [(ngModel)]="formData.salon"
-                name="salon"
-                class="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#b31942]"
-                required
-              >
-                <option value="">Select a salon</option>
-                <option *ngFor="let salon of salons" [value]="salon">{{ salon }}</option>
-              </select>
+              <div *ngIf="submitted && !formData.email" class="text-red-600 text-sm mt-1">
+                Email is required
+              </div>
             </div>
             <div>
               <label class="block text-sm font-medium text-slate-700">English Level</label>
@@ -99,9 +81,12 @@ const SHIFTS = ['Morning', 'Afternoon', 'Evening'] as const;
                 class="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#b31942]"
                 required
               >
-                <option value="">Select a level</option>
+                <option value="" disabled>Select a level</option>
                 <option *ngFor="let level of englishLevels" [value]="level">{{ level }}</option>
               </select>
+              <div *ngIf="submitted && !formData.englishLevel" class="text-red-600 text-sm mt-1">
+                Level is required
+              </div>
             </div>
             <div>
               <label class="block text-sm font-medium text-slate-700">Shift</label>
@@ -111,9 +96,12 @@ const SHIFTS = ['Morning', 'Afternoon', 'Evening'] as const;
                 class="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#b31942]"
                 required
               >
-                <option value="">Select a shift</option>
+                <option value="" disabled>Select a shift</option>
                 <option *ngFor="let shift of shifts" [value]="shift">{{ shift }}</option>
               </select>
+              <div *ngIf="submitted && !formData.shift" class="text-red-600 text-sm mt-1">
+                Shift is required
+              </div>
             </div>
           </div>
           <div>
@@ -124,6 +112,10 @@ const SHIFTS = ['Morning', 'Afternoon', 'Evening'] as const;
               class="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#b31942]"
               rows="3"
             ></textarea>
+          </div>
+          <div *ngIf="!editingId" class="flex items-center space-x-2">
+            <input type="checkbox" id="createAccount" [(ngModel)]="createAccount" name="createAccount" />
+            <label for="createAccount" class="text-sm text-slate-700">Create platform account for this student</label>
           </div>
           <div class="flex space-x-3">
             <button
@@ -156,26 +148,16 @@ const SHIFTS = ['Morning', 'Afternoon', 'Evening'] as const;
                   <h4 class="font-bold text-lg text-[#0a3161]">
                     {{ student.firstName }} {{ student.lastName }}
                   </h4>
-                  <p class="text-sm text-slate-600">
-                    {{ student.email }} • Group:
-                    <span class="font-medium">{{ student.group }}</span>
-                  </p>
+                  <p class="text-sm text-slate-600">{{ student.email }}</p>
                   <div class="mt-2 flex flex-wrap gap-2 text-xs font-semibold">
                     <span
-                      class="px-2 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-100"
-                    >
-                      Salon: {{ student.salon || 'Unassigned' }}
-                    </span>
-                    <span
                       class="px-2 py-1 rounded-full bg-amber-50 text-amber-700 border border-amber-100"
+                      >Level: {{ student.englishLevel || 'Unassigned' }}</span
                     >
-                      Level: {{ student.englishLevel || 'Unassigned' }}
-                    </span>
                     <span
                       class="px-2 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-100"
+                      >Shift: {{ student.shift || 'Unassigned' }}</span
                     >
-                      Shift: {{ student.shift || 'Unassigned' }}
-                    </span>
                   </div>
                   <p *ngIf="student.characterization" class="text-sm text-slate-500 mt-2">
                     {{ student.characterization }}
@@ -212,6 +194,7 @@ const SHIFTS = ['Morning', 'Afternoon', 'Evening'] as const;
 })
 export class StudentManagementComponent implements OnInit {
   private studentService = inject(StudentService);
+  private authService = inject(AuthService);
 
   salons = SALONS;
   englishLevels = ENGLISH_LEVELS;
@@ -220,9 +203,20 @@ export class StudentManagementComponent implements OnInit {
   showForm = false;
   editingId: string | null = null;
   formData: Partial<Student> = {};
+  submitted = false;
+  createAccount = false;
 
   ngOnInit() {
+    console.log('[DEBUG] StudentManagement ngOnInit');
+    // assign observable for template
     this.students$ = this.studentService.getStudents();
+    // also subscribe explicitly to capture and log any errors from Firestore
+    this.studentService.getStudents().subscribe({
+      next: (d) => {
+        console.log('[DEBUG] students received', d);
+      },
+      error: (err) => console.error('[DEBUG] error fetching students', err),
+    });
   }
 
   toggleForm() {
@@ -231,6 +225,7 @@ export class StudentManagementComponent implements OnInit {
   }
 
   resetForm() {
+    console.log('[DEBUG] resetForm called');
     this.formData = {};
     this.editingId = null;
   }
@@ -241,17 +236,23 @@ export class StudentManagementComponent implements OnInit {
     this.showForm = true;
   }
 
+  private generatePassword(len = 8) {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%';
+    let out = '';
+    for (let i = 0; i < len; i++) out += chars.charAt(Math.floor(Math.random() * chars.length));
+    return out;
+  }
+
   async saveStudent() {
+    this.submitted = true;
     if (
       !this.formData.firstName ||
       !this.formData.lastName ||
       !this.formData.email ||
-      !this.formData.group ||
-      !this.formData.salon ||
       !this.formData.englishLevel ||
       !this.formData.shift
     ) {
-      alert('Please fill all required classification fields');
+      // Validation messages are shown inline
       return;
     }
 
@@ -260,12 +261,33 @@ export class StudentManagementComponent implements OnInit {
         await this.studentService.updateStudent(this.editingId, this.formData);
         alert('Student updated successfully');
       } else {
-        await this.studentService.addStudent(this.formData);
-        alert('Student added successfully');
+        // Create account and link by uid if requested
+        if (this.createAccount) {
+          const password = this.generatePassword(10);
+          // Create Firebase Auth user and users/{uid} doc with profile
+          const profile = {
+            firstName: this.formData.firstName,
+            lastName: this.formData.lastName,
+            englishLevel: this.formData.englishLevel,
+            shift: this.formData.shift,
+          };
+          const uid = await this.authService.register(this.formData.email!, password, 'student', profile);
+          // Create students/{uid}
+          await this.studentService.addStudentWithUid(uid, { ...this.formData, id: uid });
+          alert(`Student and account created. Password: ${password}`);
+        } else {
+          const newId = await this.studentService.addStudent(this.formData);
+          console.log('[DEBUG] addStudent returned id', newId);
+          alert('Student added successfully');
+        }
       }
+
       this.resetForm();
+      this.submitted = false;
       this.showForm = false;
+      // refresh list
       this.students$ = this.studentService.getStudents();
+      console.log('[DEBUG] refreshed students$ observable');
     } catch (error) {
       alert('Error saving student: ' + error);
     }

@@ -19,12 +19,6 @@ import { Observable, filter, switchMap } from 'rxjs';
         <div
           class="flex items-center px-4 md:px-6 bg-blue-50 border-r border-blue-100 w-auto shrink-0"
         >
-          <img
-            src="/logo.png"
-            alt="Prestige Logo"
-            class="h-8 md:h-10 w-auto mr-3 hidden sm:block"
-            onerror="this.onerror=null; this.style.display='none';"
-          />
           <span class="text-xl font-bold tracking-wider text-blue-900">Prestige</span>
         </div>
 

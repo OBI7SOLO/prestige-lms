@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AuthService, UserProfile } from '../../services/auth.service';
 import { TaskService, Task } from '../../services/task.service';
+import { take } from 'rxjs/operators';
 
 @Component({
   selector: 'app-tasks',
@@ -61,6 +62,16 @@ import { TaskService, Task } from '../../services/task.service';
                   placeholder="https://"
                   class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                 />
+              </div>
+              <div *ngIf="(user$ | async)?.role === 'teacher' || (user$ | async)?.role === 'admin'">
+                <label class="block text-sm font-medium text-slate-700">Assign To Group</label>
+                <select
+                  formControlName="groupId"
+                  class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#b31942]"
+                >
+                  <option value="General">General</option>
+                  <option *ngFor="let g of groups" [value]="g">{{ g }}</option>
+                </select>
               </div>
             </div>
             <div class="flex justify-end pt-2">
@@ -134,6 +145,9 @@ export class TasksComponent implements OnInit {
   taskForm!: FormGroup;
   tasks: Task[] = [];
 
+  groups = ['A1', 'A2', 'B1', 'B2', 'C1'];
+  selectedGroup = 'General';
+
   isSubmitting = false;
   toastMessage = '';
   toastType: 'success' | 'error' = 'success';
@@ -147,15 +161,53 @@ export class TasksComponent implements OnInit {
       groupId: ['General'], // Simplified for MVP
     });
 
-    this.loadTasks();
+    // Load tasks depending on role
+    this.user$.pipe(take(1)).subscribe((user) => {
+      if (!user) {
+        this.loadTasks();
+        return;
+      }
+
+      if (user.role === 'teacher' || user.role === 'admin') {
+        // teacher sees tasks they created
+        this.loadTasksForTeacher(user.uid);
+      } else {
+        // student: prefer loading by group if available in profile
+        // fall back to loading all tasks
+        const group = (user as any).group || undefined;
+        if (group) this.loadTasksByGroup(group);
+        else this.loadTasks();
+      }
+    });
   }
 
   loadTasks() {
-    this.taskService.getTasks().subscribe((data) => {
-      this.tasks = data.sort(
-        (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
-      );
-    });
+    this.taskService.getTasks().subscribe(
+      (data) => this.assignTasks(data),
+      (err) => console.error('[DEBUG] error loading tasks', err),
+    );
+  }
+
+  loadTasksByGroup(groupId: string) {
+    this.taskService.getTasksByGroup(groupId).subscribe(
+      (data) => this.assignTasks(data),
+      (err) => console.error('[DEBUG] error loading tasks by group', err),
+    );
+  }
+
+  loadTasksForTeacher(teacherId: string) {
+    this.taskService.getTasksByTeacher(teacherId).subscribe(
+      (data) => this.assignTasks(data),
+      (err) => console.error('[DEBUG] error loading tasks for teacher', err),
+    );
+  }
+
+  private assignTasks(data: Task[] | undefined) {
+    const list = data || [];
+    console.log('[DEBUG] tasks received', list);
+    this.tasks = list.sort(
+      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+    );
   }
 
   getTaskStatus(dueDate: string): string {
