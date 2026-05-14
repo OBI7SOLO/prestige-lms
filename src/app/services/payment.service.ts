@@ -106,7 +106,8 @@ export class PaymentService {
   // Admin global stats
   getAdminGlobalStats(): Observable<{ totalRevenue: number; pendingPayments: number }> {
     const plansRef = collection(this.firestore, 'paymentPlans');
-    return from(getDocs(plansRef)).pipe(
+    const q = query(plansRef);
+    return from(getDocs(q)).pipe(
       map((snapshot) => {
         let totalRevenue = 0;
         let pendingPayments = 0;
