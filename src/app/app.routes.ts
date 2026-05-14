@@ -22,7 +22,7 @@ const adminGuard: CanActivateFn = () => {
   return authService.user$.pipe(
     take(1),
     map((user) => {
-      if (user?.role === 'admin') {
+      if (user?.role === 'admin' || user?.role === 'teacher') {
         return true;
       }
 

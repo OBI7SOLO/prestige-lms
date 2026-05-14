@@ -34,38 +34,38 @@ import { Observable, filter, switchMap } from 'rxjs';
         >
           <a
             routerLink="/dashboard"
-            routerLinkActive="text-[#b31942] border-white"
+            routerLinkActive="text-[#b31942] border-white border-2"
             [routerLinkActiveOptions]="{ exact: true }"
             class="px-2.5 py-1 rounded transition text-red-50 border border-transparent hover:border-red-200 font-bold text-sm tracking-wide"
             >Home</a
           >
           <a
             routerLink="/dashboard/attendance"
-            routerLinkActive="text-[#b31942] border-white"
+            routerLinkActive="text-[#b31942] border-white border-2"
             class="px-2.5 py-1 rounded transition text-red-50 border border-transparent hover:border-red-200 font-bold text-sm tracking-wide"
             >Attendance</a
           >
           <a
             routerLink="/dashboard/grades"
-            routerLinkActive="text-[#b31942] border-white"
+            routerLinkActive="text-[#b31942] border-white border-2"
             class="px-2.5 py-1 rounded transition text-red-50 border border-transparent hover:border-red-200 font-bold text-sm tracking-wide"
             >Grades</a
           >
           <a
             routerLink="/dashboard/tasks"
-            routerLinkActive="text-[#b31942] border-white"
+            routerLinkActive="text-[#b31942] border-white border-2"
             class="px-2.5 py-1 rounded transition text-red-50 border border-transparent hover:border-red-200 font-bold text-sm tracking-wide"
             >Tasks</a
           >
           <a
             routerLink="/dashboard/payments"
-            routerLinkActive="text-[#b31942] border-white"
+            routerLinkActive="text-[#b31942] border-white border-2"
             class="px-2.5 py-1 rounded transition text-red-50 border border-transparent hover:border-red-200 font-bold text-sm tracking-wide"
             >Finances</a
           >
           <div class="border-l border-red-300 h-6 mx-1"></div>
           @if (user$ | async; as user) {
-            @if (user.role === 'admin') {
+            @if (canManage(user.role)) {
               <div class="relative">
                 <button
                   type="button"
@@ -133,15 +133,16 @@ import { Observable, filter, switchMap } from 'rxjs';
           ></div>
 
           <div class="relative z-10 flex items-center space-x-3">
-            <div class="flex flex-col items-end hidden md:flex">
-              <span
-                class="text-white font-bold text-sm leading-tight"
-                *ngIf="user$ | async as user"
-                >{{ (user!.email?.split('@') ?? [])[0] }}</span
-              >
-              <span class="text-blue-200 text-xs leading-tight" *ngIf="user$ | async as user">{{
-                user!.role | titlecase
-              }}</span>
+            <div
+              *ngIf="user$ | async as user"
+              class="flex flex-col items-end text-right px-2 py-1 rounded-md border border-blue-300/40 bg-white/10"
+            >
+              <span class="text-white font-bold text-xs sm:text-sm leading-tight">
+                {{ (user.email?.split('@') ?? ['User'])[0] }}
+              </span>
+              <span class="text-blue-100 text-[11px] sm:text-xs leading-tight font-semibold">
+                {{ user.role | titlecase }}
+              </span>
             </div>
 
             <div
@@ -369,6 +370,10 @@ export class Dashboard implements OnInit {
 
   closeManageMenu() {
     this.manageMenuOpen.set(false);
+  }
+
+  canManage(role: 'admin' | 'teacher' | 'student'): boolean {
+    return role === 'admin' || role === 'teacher';
   }
 
   logout() {

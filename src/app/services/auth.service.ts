@@ -15,7 +15,7 @@ import {
   setDoc,
   serverTimestamp,
 } from '@angular/fire/firestore';
-import { Observable, of, switchMap } from 'rxjs';
+import { Observable, of, switchMap, map, catchError } from 'rxjs';
 
 export interface UserProfile {
   uid: string;
@@ -39,8 +39,29 @@ export class AuthService {
       if (!user) {
         return of(null);
       }
+
       const userDocRef = doc(this.firestore, `users/${user.uid}`);
-      return docData(userDocRef, { idField: 'uid' }) as Observable<UserProfile>;
+      return docData(userDocRef, { idField: 'uid' }).pipe(
+        map((profile) => {
+          if (profile) {
+            return profile as UserProfile;
+          }
+
+          // Fallback profile avoids blocking UI if Firestore profile is missing.
+          return {
+            uid: user.uid,
+            email: user.email,
+            role: 'student' as const,
+          };
+        }),
+        catchError(() =>
+          of({
+            uid: user.uid,
+            email: user.email,
+            role: 'student' as const,
+          }),
+        ),
+      );
     }),
   );
 
