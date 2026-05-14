@@ -1,6 +1,20 @@
 import { Injectable, inject } from '@angular/core';
-import { Auth, signInWithEmailAndPassword, signOut, authState, User } from '@angular/fire/auth';
-import { Firestore, doc, docData } from '@angular/fire/firestore';
+import {
+  Auth,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  signOut,
+  authState,
+  User,
+} from '@angular/fire/auth';
+import {
+  Firestore,
+  doc,
+  docData,
+  doc as firestoreDoc,
+  setDoc,
+  serverTimestamp,
+} from '@angular/fire/firestore';
 import { Observable, of, switchMap } from 'rxjs';
 
 export interface UserProfile {
@@ -32,6 +46,22 @@ export class AuthService {
 
   async login(email: string, password: string): Promise<void> {
     await signInWithEmailAndPassword(this.auth, email, password);
+  }
+
+  async register(
+    email: string,
+    password: string,
+    role: UserProfile['role'] = 'student',
+  ): Promise<void> {
+    const credential = await createUserWithEmailAndPassword(this.auth, email, password);
+    const profileRef = firestoreDoc(this.firestore, `users/${credential.user.uid}`);
+
+    await setDoc(profileRef, {
+      uid: credential.user.uid,
+      email: credential.user.email,
+      role,
+      createdAt: serverTimestamp(),
+    });
   }
 
   async logout(): Promise<void> {

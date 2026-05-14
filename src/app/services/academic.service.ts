@@ -1,5 +1,16 @@
 import { Injectable, inject } from '@angular/core';
-import { Firestore, collection, addDoc, query, where, getDocs } from '@angular/fire/firestore';
+import {
+  Firestore,
+  collection,
+  addDoc,
+  query,
+  where,
+  getDocs,
+  updateDoc,
+  doc,
+  deleteDoc,
+  collectionData,
+} from '@angular/fire/firestore';
 import { Observable, from, map } from 'rxjs';
 
 export type AcademicSkill = 'Speaking' | 'Listening' | 'Writing' | 'Grammar' | 'Reading';
@@ -70,5 +81,23 @@ export class AcademicService {
         });
       }),
     );
+  }
+
+  // Get all grades
+  getAllGrades(): Observable<SkillGrade[]> {
+    const gradesRef = collection(this.firestore, 'grades');
+    return collectionData(gradesRef, { idField: 'id' }) as Observable<SkillGrade[]>;
+  }
+
+  // Update grade
+  async updateGrade(id: string, data: Partial<SkillGrade>): Promise<void> {
+    const gradeDocRef = doc(this.firestore, `grades/${id}`);
+    await updateDoc(gradeDocRef, data);
+  }
+
+  // Delete grade
+  async deleteGrade(id: string): Promise<void> {
+    const gradeDocRef = doc(this.firestore, `grades/${id}`);
+    await deleteDoc(gradeDocRef);
   }
 }

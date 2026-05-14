@@ -8,6 +8,7 @@ import {
   collectionData,
   updateDoc,
   doc,
+  deleteDoc,
 } from '@angular/fire/firestore';
 import { Observable } from 'rxjs';
 
@@ -20,6 +21,7 @@ export interface Task {
   teacherId: string;
   groupId: string;
   createdAt: string;
+  status?: 'completed' | 'pending' | 'in-progress' | 'cancelled';
 }
 
 export interface TaskSubmission {
@@ -50,5 +52,15 @@ export class TaskService {
   submitTask(submission: Partial<TaskSubmission>): Promise<any> {
     const subRef = collection(this.firestore, 'submissions');
     return addDoc(subRef, submission);
+  }
+
+  updateTask(id: string, data: Partial<Task>): Promise<void> {
+    const taskDocRef = doc(this.firestore, `tasks/${id}`);
+    return updateDoc(taskDocRef, data);
+  }
+
+  deleteTask(id: string): Promise<void> {
+    const taskDocRef = doc(this.firestore, `tasks/${id}`);
+    return deleteDoc(taskDocRef);
   }
 }
