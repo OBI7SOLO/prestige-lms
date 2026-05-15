@@ -1,11 +1,11 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { AcademicService, SkillGrade, AcademicSkill } from '../../services/academic.service';
+import { AcademicService, AcademicSkill, SkillGrade } from '../../services/academic.service';
 import { StudentService, Student } from '../../services/student.service';
 import { Observable, combineLatest, map } from 'rxjs';
 
-interface GradeWithStudent extends SkillGrade {
+export interface GradeWithStudent extends SkillGrade {
   studentName?: string;
 }
 
@@ -224,12 +224,7 @@ export class GradesManagementComponent implements OnInit {
         await this.academicService.updateGrade(this.editingId, gradeData);
         alert('Grade updated successfully');
       } else {
-        await this.academicService.saveSkillGrade(
-          this.formData.studentId!,
-          this.formData.skill as AcademicSkill,
-          this.formData.grade!,
-          this.formData.observations || '',
-        );
+        await this.academicService.saveSkillGrade(gradeData);
         alert('Grade saved successfully');
       }
       this.resetForm();
