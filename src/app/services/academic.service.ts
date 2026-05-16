@@ -15,7 +15,8 @@ export type AcademicSkill = 'Speaking' | 'Listening' | 'Writing' | 'Grammar' | '
 
 export interface SkillPerformance {
   skill: string;
-  score: number;
+  score?: number;
+  average: number;
   status?: string;
 }
 

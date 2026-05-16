@@ -218,24 +218,24 @@ import { Observable, filter, switchMap } from 'rxjs';
                         <span
                           class="text-xs font-bold px-2 py-1 rounded-full"
                           [ngClass]="{
-                            'bg-green-100 text-green-800': skill.average >= 4.0,
+                            'bg-green-100 text-green-800': skill.average! >= 4.0,
                             'bg-yellow-100 text-yellow-800':
-                              skill.average >= 3.0 && skill.average < 4.0,
-                            'bg-red-100 text-red-800': skill.average < 3.0,
+                              skill.average! >= 3.0 && skill.average! < 4.0,
+                            'bg-red-100 text-red-800': skill.average! < 3.0,
                           }"
                         >
-                          {{ skill.average | number: '1.1-1' }}
+                          {{ skill.average! | number: '1.1-1' }}
                         </span>
                       </div>
                       <!-- Progress Bar -->
                       <div class="h-2 w-full bg-slate-200 rounded-full overflow-hidden">
                         <div
                           class="h-full rounded-full transition-all duration-500 ease-out"
-                          [style.width.%]="(skill.average / 5) * 100"
+                          [style.width.%]="(skill.average! / 5) * 100"
                           [ngClass]="{
-                            'bg-green-500': skill.average >= 4.0,
-                            'bg-yellow-500': skill.average >= 3.0 && skill.average < 4.0,
-                            'bg-red-500': skill.average < 3.0,
+                            'bg-green-500': skill.average! >= 4.0,
+                            'bg-yellow-500': skill.average! >= 3.0 && skill.average! < 4.0,
+                            'bg-red-500': skill.average! < 3.0,
                           }"
                         ></div>
                       </div>
